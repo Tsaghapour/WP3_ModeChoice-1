@@ -13,7 +13,7 @@ suppressPackageStartupMessages(library(tidyverse))# for manipulating data
 suppressPackageStartupMessages(library(expss))# for manipulating data
 
 #Writing and reading csv
-trads <- readRDS("C:/Users/e18933/OneDrive - RMIT University/WORK/JIBE/DATA Analysis/R/Manchester/TRADS_safe_routed.rds")
+trads <- read_rds("C:/Users/e18933/OneDrive - RMIT University/WORK/JIBE/DATA Analysis/R/Manchester/TRADS_safe_routed_v2.rds")
 write.csv(trads[["trips"]],file = "C:/Users/e18933/OneDrive - RMIT University/WORK/JIBE/DATA Analysis/R/Manchester/trip_manchester.csv",row.names=F)
 write.csv(trads[["households"]],file = "C:/Users/e18933/OneDrive - RMIT University/WORK/JIBE/DATA Analysis/R/Manchester/hh_manchester.csv",row.names=F)
 write.csv(trads[["indiv"]],file = "C:/Users/e18933/OneDrive - RMIT University/WORK/JIBE/DATA Analysis/R/Manchester/pers_manchester.csv",row.names=F)
@@ -56,7 +56,7 @@ trips_hh_p <- trips_hh_p[!(trips_hh_p$agegroup==""),]
 
 #recoding work type
 trips_hh_p$worktype[trips_hh_p$p.ws_workOver30h=="TRUE"] = 1 #working full time
-trips_hh_p$worktype[trips_hh_p$p.ws_work16to30h=="TRUE"|trips_hh_p$p.ws_workUnder16h=="TRUE"|trips_hh_p$p.ws_volunteer=="TRUE"] = 2 #working part time/casual/volunteer
+trips_hh_p$worktype[trips_hh_p$p.ws_work16to30h=="TRUE"|trips_hh_p$p.ws_workUnder16h=="TRUE"|trips_hh_p$p.ws_unpaid=="TRUE"] = 2 #working part time/casual/volunteer
 trips_hh_p$worktype[trips_hh_p$p.ws_retired=="TRUE"] = 3
 trips_hh_p$worktype[trips_hh_p$p.ws_studyFullTime=="TRUE"|trips_hh_p$p.ws_studyPartTime=="TRUE"] = 4 #studying full/part time
 trips_hh_p$worktype[trips_hh_p$p.ws_homeMaker=="TRUE"|trips_hh_p$p.ws_unemployed=="TRUE"|trips_hh_p$p.ws_other=="TRUE"|trips_hh_p$p.ws_longTermDisabled=="TRUE"] = 5 #not in work force/other
@@ -97,8 +97,122 @@ trips_hh_p$hh.structure2=="Two Adults Hoh or HRP 16 to 64"|trips_hh_p$hh.structu
 
 #trips_hh_p$hhstructure <- factor(trips_hh_p$hhstructure, levels = c(1,0),labels = c("households with children", "households without children"))
 
+
+#modifying route-based attributes (divided by distance to get the raw values)
+###vgvi 
+trips_hh_p$vgvi_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_vgvi/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_vgvi)
+trips_hh_p$vgvi_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_vgvi/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_vgvi)
+trips_hh_p$vgvi_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_vgvi/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_fast_vgvi)
+trips_hh_p$vgvi_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_vgvi/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_fast_vgvi)
+trips_hh_p$vgvi_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_vgvi/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_jibe_vgvi)
+trips_hh_p$vgvi_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_vgvi/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_jibe_vgvi)
+
+###lighting 
+trips_hh_p$light_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_lighting/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_lighting)
+trips_hh_p$light_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_lighting/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_lighting)
+trips_hh_p$light_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_lighting/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_fast_lighting)
+trips_hh_p$light_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_lighting/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_fast_lighting)
+trips_hh_p$light_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_lighting/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_jibe_lighting)
+trips_hh_p$light_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_lighting/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_jibe_lighting)
+
+###shannon 
+trips_hh_p$shannon_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_shannon/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_shannon)
+trips_hh_p$shannon_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_shannon/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_shannon)
+trips_hh_p$light_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_lighting/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_fast_lighting)
+trips_hh_p$light_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_lighting/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_fast_lighting)
+trips_hh_p$light_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_lighting/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_jibe_lighting)
+trips_hh_p$light_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_lighting/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_jibe_lighting)
+
+###crime 
+trips_hh_p$crime_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_crime/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_crime)
+trips_hh_p$crime_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_crime/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_crime)
+trips_hh_p$crime_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_crime/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_fast_crime)
+trips_hh_p$crime_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_crime/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_fast_crime)
+trips_hh_p$crime_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_crime/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_jibe_crime)
+trips_hh_p$crime_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_crime/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_jibe_crime)
+
+###attractiveness 
+trips_hh_p$attract_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_attractiveness/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_attractiveness)
+trips_hh_p$attract_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_attractiveness/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_attractiveness)
+trips_hh_p$attract_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_attractiveness/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_fast_attractiveness)
+trips_hh_p$attract_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_attractiveness/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_fast_attractiveness)
+trips_hh_p$attract_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_attractiveness/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_jibe_attractiveness)
+trips_hh_p$attract_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_attractiveness/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_jibe_attractiveness)
+
+###stresslink 
+trips_hh_p$streslnk_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_stressLink/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_stressLink)
+trips_hh_p$streslnk_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_stressLink/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_stressLink)
+trips_hh_p$streslnk_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_stressLink/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_fast_stressLink)
+trips_hh_p$streslnk_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_stressLink/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_fast_stressLink)
+trips_hh_p$streslnk_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_stressLink/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_jibe_stressLink)
+trips_hh_p$streslnk_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_stressLink/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_jibe_stressLink)
+
+###stressJct
+trips_hh_p$stresjct_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_stressJct/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_stressJct)
+trips_hh_p$stresjct_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_stressJct/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_stressJct)
+trips_hh_p$stresjct_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_stressJct/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_fast_stressJct)
+trips_hh_p$stresjct_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_stressJct/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_fast_stressJct)
+trips_hh_p$stresjct_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_stressJct/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_jibe_stressJct)
+trips_hh_p$stresjct_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_stressJct/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_jibe_stressJct)
+
+###s.sumstress 
+trips_hh_p$s.sumstress_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,(trips_hh_p$t.route.walk_short_stressJct+trips_hh_p$t.route.walk_short_stressLink)/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_stressJct+trips_hh_p$t.route.walk_short_stressLink)
+trips_hh_p$s.sumstress_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,(trips_hh_p$t.route.bike_short_stressJct+trips_hh_p$t.route.bike_short_stressLink)/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_stressJct+trips_hh_p$t.route.bike_short_stressLink)
+trips_hh_p$s.sumstress_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,(trips_hh_p$t.route.walk_fast_stressJct+trips_hh_p$t.route.walk_fast_stressLink)/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_short_stressJct+trips_hh_p$t.route.walk_short_stressLink)
+trips_hh_p$s.sumstress_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,(trips_hh_p$t.route.bike_fast_stressJct+trips_hh_p$t.route.bike_fast_stressLink)/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_short_stressJct+trips_hh_p$t.route.bike_short_stressLink)
+trips_hh_p$s.sumstress_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,(trips_hh_p$t.route.walk_jibe_stressJct+trips_hh_p$t.route.walk_jibe_stressLink)/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_short_stressJct+trips_hh_p$t.route.walk_short_stressLink)
+trips_hh_p$s.sumstress_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,(trips_hh_p$t.route.bike_jibe_stressJct+trips_hh_p$t.route.bike_jibe_stressLink)/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_short_stressJct+trips_hh_p$t.route.bike_short_stressLink)
+
+###poi 
+trips_hh_p$poi_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_POIs/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_POIs)
+trips_hh_p$poi_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_POIs/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_POIs)
+trips_hh_p$poi_walk_fast <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_POIs/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_POIs)
+trips_hh_p$poi_bike_fast <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_POIs/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_POIs)
+trips_hh_p$poi_walk_jibe <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_POIs/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_POIs)
+trips_hh_p$poi_bike_jibe <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_POIs/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_POIs)
+
+###negpoi
+trips_hh_p$negpoi_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_negPOIs/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_negPOIs)
+trips_hh_p$negpoi_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_negPOIs/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_negPOIs)
+trips_hh_p$negpoi_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_negPOIs/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_fast_negPOIs)
+trips_hh_p$negpoi_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_negPOIs/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_fast_negPOIs)
+trips_hh_p$negpoi_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_negPOIs/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_jibe_negPOIs)
+trips_hh_p$negpoi_bike_je <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_negPOIs/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_jibe_negPOIs)
+
+###frieghtpoi 
+trips_hh_p$freightpoi_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,trips_hh_p$t.route.walk_short_freightPOIs/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_freightPOIs)
+trips_hh_p$freightpoi_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,trips_hh_p$t.route.bike_short_freightPOIs/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_freightPOIs)
+trips_hh_p$freightpoi_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,trips_hh_p$t.route.walk_fast_freightPOIs/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_fast_freightPOIs)
+trips_hh_p$freightpoi_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,trips_hh_p$t.route.bike_fast_freightPOIs/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_fast_freightPOIs)
+trips_hh_p$freightpoi_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,trips_hh_p$t.route.walk_jibe_freightPOIs/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_jibe_freightPOIs)
+trips_hh_p$freightpoi_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,trips_hh_p$t.route.bike_jibe_freightPOIs/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_jibe_freightPOIs)
+
+###s.sumpois
+trips_hh_p$s.sumpois_walk_short <- ifelse(trips_hh_p$t.route.walk_short_dist>0,(trips_hh_p$t.route.walk_short_POIs+trips_hh_p$t.route.walk_short_negPOIs)/trips_hh_p$t.route.walk_short_dist,trips_hh_p$t.route.walk_short_POIs+trips_hh_p$t.route.walk_short_negPOIs)
+trips_hh_p$s.sumpois_bike_short <- ifelse(trips_hh_p$t.route.bike_short_dist>0,(trips_hh_p$t.route.bike_short_POIs+trips_hh_p$t.route.bike_short_negPOIs)/trips_hh_p$t.route.bike_short_dist,trips_hh_p$t.route.bike_short_POIs+trips_hh_p$t.route.bike_short_negPOIs)
+trips_hh_p$s.sumpois_walk_fast <- ifelse(trips_hh_p$t.route.walk_fast_dist>0,(trips_hh_p$t.route.walk_fast_POIs+trips_hh_p$t.route.walk_fast_negPOIs)/trips_hh_p$t.route.walk_fast_dist,trips_hh_p$t.route.walk_short_POIs+trips_hh_p$t.route.walk_short_negPOIs)
+trips_hh_p$s.sumpois_bike_fast <- ifelse(trips_hh_p$t.route.bike_fast_dist>0,(trips_hh_p$t.route.bike_fast_POIs+trips_hh_p$t.route.bike_fast_negPOIs)/trips_hh_p$t.route.bike_fast_dist,trips_hh_p$t.route.bike_short_POIs+trips_hh_p$t.route.bike_short_negPOIs)
+trips_hh_p$s.sumpois_walk_jibe <- ifelse(trips_hh_p$t.route.walk_jibe_dist>0,(trips_hh_p$t.route.walk_jibe_POIs+trips_hh_p$t.route.walk_jibe_negPOIs)/trips_hh_p$t.route.walk_jibe_dist,trips_hh_p$t.route.walk_short_POIs+trips_hh_p$t.route.walk_short_negPOIs)
+trips_hh_p$s.sumpois_bike_jibe <- ifelse(trips_hh_p$t.route.bike_jibe_dist>0,(trips_hh_p$t.route.bike_jibe_POIs+trips_hh_p$t.route.bike_jibe_negPOIs)/trips_hh_p$t.route.bike_jibe_dist,trips_hh_p$t.route.bike_short_POIs+trips_hh_p$t.route.bike_short_negPOIs)
+
+###sumpois
+trips_hh_p$sumpois_walk_short <- trips_hh_p$t.route.walk_short_POIs+trips_hh_p$t.route.walk_short_negPOIs
+trips_hh_p$sumpois_bike_short <- trips_hh_p$t.route.bike_short_POIs+trips_hh_p$t.route.bike_short_negPOIs
+trips_hh_p$sumpois_walk_fast <- trips_hh_p$t.route.walk_fast_POIs+trips_hh_p$t.route.walk_fast_negPOIs
+trips_hh_p$sumpois_bike_fast <- trips_hh_p$t.route.bike_fast_POIs+trips_hh_p$t.route.bike_fast_negPOIs
+trips_hh_p$sumpois_walk_jibe <- trips_hh_p$t.route.walk_jibe_POIs+trips_hh_p$t.route.walk_jibe_negPOIs
+trips_hh_p$sumpois_bike_jibe <- trips_hh_p$t.route.bike_jibe_POIs+trips_hh_p$t.route.bike_jibe_negPOIs
+
+###sumstress
+trips_hh_p$sumstress_walk_short <- trips_hh_p$t.route.walk_short_stressJct+trips_hh_p$t.route.walk_short_stressLink
+trips_hh_p$sumstress_bike_short <- trips_hh_p$t.route.bike_short_stressJct+trips_hh_p$t.route.bike_short_stressLink
+trips_hh_p$sumstress_walk_fast <- trips_hh_p$t.route.walk_fast_stressJct+trips_hh_p$t.route.walk_fast_stressLink
+trips_hh_p$sumstress_bike_fast <- trips_hh_p$t.route.bike_fast_stressJct+trips_hh_p$t.route.bike_fast_stressLink
+trips_hh_p$sumstress_walk_jibe <- trips_hh_p$t.route.walk_jibe_stressJct+trips_hh_p$t.route.walk_jibe_stressLink
+trips_hh_p$sumstress_bike_jibe <- trips_hh_p$t.route.bike_jibe_stressJct+trips_hh_p$t.route.bike_jibe_stressLink
+
 #generating mainmode 
-trips_hh_p$mainmode[trips_hh_p$t.m_carDriver=="TRUE"|trips_hh_p$t.m_motorcycle=="TRUE"] = 1 
+trips_hh_p$mainmode[trips_hh_p$t.m_carDriver=="TRUE"] = 1 
 trips_hh_p$mainmode[trips_hh_p$t.m_carPassenger=="TRUE"|trips_hh_p$t.m_taxi=="TRUE"] = 2
 trips_hh_p$mainmode[trips_hh_p$t.m_walk=="TRUE"] = 3
 trips_hh_p$mainmode[trips_hh_p$t.m_cycle=="TRUE"] = 4
